@@ -62,8 +62,17 @@ export const createApp = async (): Promise<Express> => {
     app.use("/products", items);
 
     // Swagger UI
-    const swaggerDocument = yaml.load("./openapi.yaml");
-    app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+    try {
+        const swaggerPath = path.join(__dirname, "../openapi.yaml");
+        if (fs.existsSync(swaggerPath)) {
+            const swaggerDocument = yaml.load(swaggerPath);
+            app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+        } else {
+            console.warn("Swagger spec NOT found at:", swaggerPath);
+        }
+    } catch (err) {
+        console.error("Failed to load swagger UI:", err);
+    }
 
     // Serve Static Files
     const publicPath = path.join(__dirname, "../public");

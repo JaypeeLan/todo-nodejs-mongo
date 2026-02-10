@@ -6,6 +6,8 @@ const main = async () => {
     const port = process.env.FUNCTIONS_CUSTOMHANDLER_PORT || process.env.PORT || 3100;
 
     app.listen(port, () => {
+        console.log(`Node version: ${process.version}`);
+        console.log(`Listening on port: ${port}`);
         logger.info(`Started listening on port ${port}`);
     });
 };
