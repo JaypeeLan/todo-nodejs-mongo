@@ -1,17 +1,18 @@
-export enum TodoItemState {
-    Todo = "todo",
-    InProgress = "inprogress",
-    Done = "done"
+export enum ProductStatus {
+    Available = "available",
+    OutOfStock = "outofstock",
+    Discontinued = "discontinued"
 }
 
-export type TodoItem = {
+export type Product = {
     id: string
-    listId: string
     name: string
-    state: TodoItemState
-    description?: string
-    dueDate?: Date
-    completedDate?: Date
+    description: string
+    price: number
+    imageUrl: string
+    stock: number
+    category: string
+    status: ProductStatus
     createdDate?: Date
     updatedDate?: Date
 }

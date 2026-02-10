@@ -1,29 +1,23 @@
 import { getTodoItemContainer } from "./cosmosClient";
-import { TodoItem, TodoItemState } from "./todoItem";
+import { Product, ProductStatus } from "./todoItem";
 import { v4 as uuidv4 } from "uuid";
 
-export class TodoItemRepository {
+export class ProductRepository {
     private container = getTodoItemContainer();
 
-    async findByListId(listId: string): Promise<TodoItem[]> {
+    async findAll(): Promise<Product[]> {
         const querySpec = {
-            query: "SELECT * FROM c WHERE c.listId = @listId",
-            parameters: [
-                {
-                    name: "@listId",
-                    value: listId
-                }
-            ]
+            query: "SELECT * FROM c"
         };
 
         const { resources } = await this.container.items.query(querySpec).fetchAll();
-        return resources as TodoItem[];
+        return resources as Product[];
     }
 
-    async findById(id: string): Promise<TodoItem | null> {
+    async findById(id: string): Promise<Product | null> {
         try {
             const { resource } = await this.container.item(id, id).read();
-            return resource as TodoItem || null;
+            return resource as Product || null;
         } catch (error: any) {
             if (error.code === 404) {
                 return null;
@@ -32,43 +26,44 @@ export class TodoItemRepository {
         }
     }
 
-    async create(todoItem: Partial<TodoItem>): Promise<TodoItem> {
+    async create(product: Partial<Product>): Promise<Product> {
         const id = uuidv4();
         const now = new Date();
-        const newTodoItem: TodoItem = {
+        const newProduct: Product = {
             id,
-            listId: todoItem.listId || "",
-            name: todoItem.name || "",
-            state: todoItem.state || TodoItemState.Todo,
-            description: todoItem.description,
-            dueDate: todoItem.dueDate,
-            completedDate: todoItem.completedDate,
+            name: product.name || "",
+            description: product.description || "",
+            price: product.price || 0,
+            imageUrl: product.imageUrl || "",
+            stock: product.stock || 0,
+            category: product.category || "General",
+            status: product.status || ProductStatus.Available,
             createdDate: now,
             updatedDate: now,
         };
 
-        const { resource } = await this.container.items.create(newTodoItem);
+        const { resource } = await this.container.items.create(newProduct);
         if (!resource) {
-            throw new Error("Failed to create todo item");
+            throw new Error("Failed to create product");
         }
-        return resource as TodoItem;
+        return resource as Product;
     }
 
-    async update(id: string, todoItem: Partial<TodoItem>): Promise<TodoItem | null> {
+    async update(id: string, product: Partial<Product>): Promise<Product | null> {
         const existing = await this.findById(id);
         if (!existing) {
             return null;
         }
 
-        const updated: TodoItem = {
+        const updated: Product = {
             ...existing,
-            ...todoItem,
+            ...product,
             id, // Ensure ID doesn't change
             updatedDate: new Date(),
         };
 
         const { resource } = await this.container.item(id, id).replace(updated);
-        return resource as TodoItem || null;
+        return resource as Product || null;
     }
 
     async delete(id: string): Promise<boolean> {
@@ -81,19 +76,5 @@ export class TodoItemRepository {
             }
             throw error;
         }
-    }
-
-    async deleteByListId(listId: string): Promise<number> {
-        const items = await this.findByListId(listId);
-        let deletedCount = 0;
-
-        for (const item of items) {
-            const deleted = await this.delete(item.id);
-            if (deleted) {
-                deletedCount++;
-            }
-        }
-
-        return deletedCount;
     }
 }

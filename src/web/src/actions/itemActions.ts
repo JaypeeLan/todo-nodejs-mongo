@@ -1,6 +1,6 @@
 import { Dispatch } from "react";
-import { TodoItem } from "../models";
-import { ItemService } from "../services/itemService";
+import { Product } from "../models";
+import { ProductService } from "../services/itemService";
 import { ActionTypes } from "./common";
 import config from "../config"
 import { ActionMethod, createPayloadAction, PayloadAction } from "./actionCreators";
@@ -10,15 +10,15 @@ export interface QueryOptions {
 }
 
 export interface ItemActions {
-    list(listId: string, options?: QueryOptions): Promise<TodoItem[]>
-    select(item?: TodoItem): Promise<TodoItem>
-    load(listId: string, id: string): Promise<TodoItem>
-    save(listId: string, Item: TodoItem): Promise<TodoItem>
-    remove(listId: string, Item: TodoItem): Promise<void>
+    list(options?: QueryOptions): Promise<Product[]>
+    select(item?: Product): Promise<Product>
+    load(id: string): Promise<Product>
+    save(item: Product): Promise<Product>
+    remove(item: Product): Promise<void>
 }
 
-export const list = (listId: string, options?: QueryOptions): ActionMethod<TodoItem[]> => async (dispatch: Dispatch<ListItemsAction>) => {
-    const itemService = new ItemService(config.api.baseUrl, `/lists/${listId}/items`);
+export const list = (options?: QueryOptions): ActionMethod<Product[]> => async (dispatch: Dispatch<ListItemsAction>) => {
+    const itemService = new ProductService(config.api.baseUrl, `/products`);
     const items = await itemService.getList(options);
 
     dispatch(listItemsAction(items));
@@ -26,14 +26,14 @@ export const list = (listId: string, options?: QueryOptions): ActionMethod<TodoI
     return items;
 }
 
-export const select = (item?: TodoItem): ActionMethod<TodoItem | undefined> => async (dispatch: Dispatch<SelectItemAction>) => {
+export const select = (item?: Product): ActionMethod<Product | undefined> => async (dispatch: Dispatch<SelectItemAction>) => {
     dispatch(selectItemAction(item));
 
     return Promise.resolve(item);
 }
 
-export const load = (listId: string, id: string): ActionMethod<TodoItem> => async (dispatch: Dispatch<LoadItemAction>) => {
-    const itemService = new ItemService(config.api.baseUrl, `/lists/${listId}/items`);
+export const load = (id: string): ActionMethod<Product> => async (dispatch: Dispatch<LoadItemAction>) => {
+    const itemService = new ProductService(config.api.baseUrl, `/products`);
     const item = await itemService.get(id);
 
     dispatch(loadItemAction(item));
@@ -41,8 +41,8 @@ export const load = (listId: string, id: string): ActionMethod<TodoItem> => asyn
     return item;
 }
 
-export const save = (listId: string, item: TodoItem): ActionMethod<TodoItem> => async (dispatch: Dispatch<SaveItemAction>) => {
-    const itemService = new ItemService(config.api.baseUrl, `/lists/${listId}/items`);
+export const save = (item: Product): ActionMethod<Product> => async (dispatch: Dispatch<SaveItemAction>) => {
+    const itemService = new ProductService(config.api.baseUrl, `/products`);
     const newItem = await itemService.save(item);
 
     dispatch(saveItemAction(newItem));
@@ -50,27 +50,27 @@ export const save = (listId: string, item: TodoItem): ActionMethod<TodoItem> => 
     return newItem;
 }
 
-export const remove = (listId: string, item: TodoItem): ActionMethod<void> => async (dispatch: Dispatch<DeleteItemAction>) => {
-    const itemService = new ItemService(config.api.baseUrl, `/lists/${listId}/items`);
+export const remove = (item: Product): ActionMethod<void> => async (dispatch: Dispatch<DeleteItemAction>) => {
+    const itemService = new ProductService(config.api.baseUrl, `/products`);
     if (item.id) {
         await itemService.delete(item.id);
         dispatch(deleteItemAction(item.id));
     }
 }
 
-export interface ListItemsAction extends PayloadAction<string, TodoItem[]> {
+export interface ListItemsAction extends PayloadAction<string, Product[]> {
     type: ActionTypes.LOAD_TODO_ITEMS
 }
 
-export interface SelectItemAction extends PayloadAction<string, TodoItem | undefined> {
+export interface SelectItemAction extends PayloadAction<string, Product | undefined> {
     type: ActionTypes.SELECT_TODO_ITEM
 }
 
-export interface LoadItemAction extends PayloadAction<string, TodoItem> {
+export interface LoadItemAction extends PayloadAction<string, Product> {
     type: ActionTypes.LOAD_TODO_ITEM
 }
 
-export interface SaveItemAction extends PayloadAction<string, TodoItem> {
+export interface SaveItemAction extends PayloadAction<string, Product> {
     type: ActionTypes.SAVE_TODO_ITEM
 }
 
@@ -83,3 +83,4 @@ const selectItemAction = createPayloadAction<SelectItemAction>(ActionTypes.SELEC
 const loadItemAction = createPayloadAction<LoadItemAction>(ActionTypes.LOAD_TODO_ITEM);
 const saveItemAction = createPayloadAction<SaveItemAction>(ActionTypes.SAVE_TODO_ITEM);
 const deleteItemAction = createPayloadAction<DeleteItemAction>(ActionTypes.DELETE_TODO_ITEM);
+

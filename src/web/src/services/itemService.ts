@@ -1,8 +1,9 @@
 import { RestService } from './restService';
-import { TodoItem } from '../models';
+import { Product } from '../models';
 
-export class ItemService extends RestService<TodoItem> {
+export class ProductService extends RestService<Product> {
     public constructor(baseUrl: string, baseRoute: string) {
         super(baseUrl, baseRoute);
     }
 }
+

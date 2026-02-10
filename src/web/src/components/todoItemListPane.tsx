@@ -1,48 +1,32 @@
-import { CommandBar, DetailsList, DetailsListLayoutMode, IStackStyles, Selection, Label, Spinner, SpinnerSize, Stack, IIconProps, SearchBox, Text, IGroup, IColumn, MarqueeSelection, FontIcon, IObjectWithKey, CheckboxVisibility, IDetailsGroupRenderProps, getTheme } from '@fluentui/react';
+import { CommandBar, DetailsList, DetailsListLayoutMode, IStackStyles, Selection, Label, Spinner, SpinnerSize, Stack, IIconProps, SearchBox, Text, IGroup, IColumn, MarqueeSelection, CheckboxVisibility, IDetailsGroupRenderProps, getTheme, Image, ImageFit } from '@fluentui/react';
 import { ReactElement, useEffect, useState, FormEvent, FC } from 'react';
 import { useNavigate } from 'react-router';
-import { TodoItem, TodoItemState, TodoList } from '../models';
+import { Product, ProductStatus } from '../models';
 import { stackItemPadding } from '../ux/styles';
 
-interface TodoItemListPaneProps {
-    list?: TodoList
-    items?: TodoItem[]
-    selectedItem?: TodoItem;
+interface ProductListPaneProps {
+    items?: Product[]
+    selectedItem?: Product;
     disabled: boolean
-    onCreated: (item: TodoItem) => void
-    onDelete: (item: TodoItem) => void
-    onComplete: (item: TodoItem) => void
-    onSelect: (item?: TodoItem) => void
+    onCreated: (item: Product) => void
+    onDelete: (item: Product) => void
+    onSelect: (item?: Product) => void
 }
 
-interface TodoDisplayItem extends IObjectWithKey {
-    id?: string
-    listId: string
-    name: string
-    state: TodoItemState
-    description?: string
-    dueDate: Date | string
-    completedDate: Date | string
-    data: TodoItem
-    createdDate?: Date
-    updatedDate?: Date
+interface ProductDisplayItem extends Product {
+    key: string;
+    priceDisplay: string;
 }
 
 const addIconProps: IIconProps = {
-    iconName: 'Add',
-    styles: {
-        root: {
-        }
-    }
+    iconName: 'Add'
 };
 
-const createListItems = (items: TodoItem[]): TodoDisplayItem[] => {
+const createListItems = (items: Product[]): ProductDisplayItem[] => {
     return items.map(item => ({
         ...item,
-        key: item.id,
-        dueDate: item.dueDate ? new Date(item.dueDate).toDateString() : 'None',
-        completedDate: item.completedDate ? new Date(item.completedDate).toDateString() : 'N/A',
-        data: item
+        key: item.id || '',
+        priceDisplay: `$${item.price.toFixed(2)}`,
     }));
 };
 
@@ -52,109 +36,67 @@ const stackStyles: IStackStyles = {
     }
 }
 
-const TodoItemListPane: FC<TodoItemListPaneProps> = (props: TodoItemListPaneProps): ReactElement => {
+const ProductListPane: FC<ProductListPaneProps> = (props: ProductListPaneProps): ReactElement => {
     const theme = getTheme();
     const navigate = useNavigate();
     const [newItemName, setNewItemName] = useState('');
     const [items, setItems] = useState(createListItems(props.items || []));
-    const [selectedItems, setSelectedItems] = useState<TodoItem[]>([]);
-    const [isDoneCategoryCollapsed, setIsDoneCategoryCollapsed] = useState(true);
+    const [selectedItems, setSelectedItems] = useState<Product[]>([]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const selection = new Selection({
         onSelectionChanged: () => {
-            const selectedItems = selection.getSelection().map(item => (item as TodoDisplayItem).data);
-            setSelectedItems(selectedItems);
+            const selected = selection.getSelection() as ProductDisplayItem[];
+            setSelectedItems(selected);
         }
     });
 
-    // Handle list changed
     useEffect(() => {
-        setIsDoneCategoryCollapsed(true);
-        setSelectedItems([]);
-    }, [props.list]);
-
-    // Handle items changed
-    useEffect(() => {
-        const sortedItems = (props.items || []).sort((a, b) => {
-            if (a.state === b.state) {
-                return a.name < b.name ? -1 : 1;
-            }
-
-            return a.state < b.state ? -1 : 1;
-        })
-        setItems(createListItems(sortedItems || []));
+        const sortedItems = [...(props.items || [])].sort((a, b) => (a.category < b.category ? -1 : 1));
+        setItems(createListItems(sortedItems));
     }, [props.items]);
 
-    // Handle selected item changed
-    useEffect(() => {
-        if (items.length > 0 && props.selectedItem?.id) {
-            selection.setKeySelected(props.selectedItem.id, true, true);
-        }
-
-        const doneItems = selectedItems.filter(i => i.state === TodoItemState.Done);
-        if (doneItems.length > 0) {
-            setIsDoneCategoryCollapsed(false);
-        }
-
-    }, [items.length, props.selectedItem, selectedItems, selection])
-
-    const groups: IGroup[] = [
-        {
-            key: TodoItemState.Todo,
-            name: 'Todo',
-            count: items.filter(i => i.state === TodoItemState.Todo).length,
-            startIndex: items.findIndex(i => i.state === TodoItemState.Todo),
-        },
-        {
-            key: TodoItemState.InProgress,
-            name: 'In Progress',
-            count: items.filter(i => i.state === TodoItemState.InProgress).length,
-            startIndex: items.findIndex(i => i.state === TodoItemState.InProgress)
-        },
-        {
-            key: TodoItemState.Done,
-            name: 'Done',
-            count: items.filter(i => i.state === TodoItemState.Done).length,
-            startIndex: items.findIndex(i => i.state === TodoItemState.Done),
-            isCollapsed: isDoneCategoryCollapsed
-        },
-    ]
+    const categories = Array.from(new Set(items.map(i => i.category)));
+    const groups: IGroup[] = categories.map(cat => {
+        const catItems = items.filter(i => i.category === cat);
+        return {
+            key: cat,
+            name: cat,
+            startIndex: items.findIndex(i => i.category === cat),
+            count: catItems.length,
+        };
+    });
 
     const onFormSubmit = (evt: FormEvent<HTMLFormElement>) => {
         evt.preventDefault();
-
         if (newItemName && props.onCreated) {
-            const item: TodoItem = {
+            const item: Product = {
                 name: newItemName,
-                listId: props.list?.id || '',
-                state: TodoItemState.Todo,
+                description: '',
+                price: 0,
+                imageUrl: '',
+                stock: 0,
+                category: 'General',
+                status: ProductStatus.Available,
             }
             props.onCreated(item);
             setNewItemName('');
         }
     }
 
-    const onNewItemChanged = (_evt?: FormEvent<HTMLInputElement>, value?: string) => {
-        setNewItemName(value || '');
-    }
-
-    const selectItem = (item: TodoDisplayItem) => {
-        navigate(`/lists/${item.data.listId}/items/${item.data.id}`);
-    }
-
-    const completeItems = () => {
-        selectedItems.map(item => props.onComplete(item));
+    const selectItem = (item: ProductDisplayItem) => {
+        navigate(`/products/${item.id}`);
     }
 
     const deleteItems = () => {
-        selectedItems.map(item => props.onDelete(item));
+        selectedItems.forEach(item => props.onDelete(item));
     }
 
     const columns: IColumn[] = [
-        { key: 'name', name: 'Name', fieldName: 'name', minWidth: 100 },
-        { key: 'dueDate', name: 'Due', fieldName: 'dueDate', minWidth: 100 },
-        { key: 'completedDate', name: 'Completed', fieldName: 'completedDate', minWidth: 100 },
+        { key: 'image', name: '', fieldName: 'imageUrl', minWidth: 50, maxWidth: 50 },
+        { key: 'name', name: 'Product Name', fieldName: 'name', minWidth: 150 },
+        { key: 'price', name: 'Price', fieldName: 'priceDisplay', minWidth: 70 },
+        { key: 'stock', name: 'Stock', fieldName: 'stock', minWidth: 50 },
+        { key: 'status', name: 'Status', fieldName: 'status', minWidth: 80 },
     ];
 
     const groupRenderProps: IDetailsGroupRenderProps = {
@@ -167,24 +109,19 @@ const TodoItemListPane: FC<TodoItemListPaneProps> = (props: TodoItemListPaneProp
         }
     }
 
-    const renderItemColumn = (item: TodoDisplayItem, _index?: number, column?: IColumn) => {
-        const fieldContent = item[column?.fieldName as keyof TodoDisplayItem] as string;
-
+    const renderItemColumn = (item: ProductDisplayItem, _index?: number, column?: IColumn) => {
         switch (column?.key) {
+            case "image":
+                return <Image src={item.imageUrl} width={40} height={40} imageFit={ImageFit.cover} />;
             case "name":
                 return (
-                    <>
-                        <Text variant="small" block>{item.name}</Text>
-                        {item.description &&
-                            <>
-                                <FontIcon iconName="QuickNote" style={{ padding: "5px 5px 5px 0" }} />
-                                <Text variant="smallPlus">{item.description}</Text>
-                            </>
-                        }
-                    </>
+                    <Stack>
+                        <Text variant="medium" block>{item.name}</Text>
+                        <Text variant="small" style={{ color: theme.palette.neutralSecondary }}>{item.description}</Text>
+                    </Stack>
                 );
             default:
-                return (<Text variant="small">{fieldContent}</Text>)
+                return <Text variant="small">{(item as any)[column?.fieldName || '']}</Text>
         }
     }
 
@@ -194,32 +131,25 @@ const TodoItemListPane: FC<TodoItemListPaneProps> = (props: TodoItemListPaneProp
                 <form onSubmit={onFormSubmit}>
                     <Stack horizontal styles={stackStyles}>
                         <Stack.Item grow={1}>
-                            <SearchBox value={newItemName} placeholder="Add an item" iconProps={addIconProps} onChange={onNewItemChanged} disabled={props.disabled} />
+                            <SearchBox value={newItemName} placeholder="Quick add product name" iconProps={addIconProps} onChange={(_e, v) => setNewItemName(v || '')} disabled={props.disabled} />
                         </Stack.Item>
                         <Stack.Item>
                             <CommandBar
                                 items={[
                                     {
-                                        key: 'markComplete',
-                                        text: 'Mark Complete',
-                                        disabled: props.disabled,
-                                        iconProps: { iconName: 'Completed' },
-                                        onClick: () => { completeItems() }
-                                    },
-                                    {
                                         key: 'delete',
-                                        text: 'Delete',
-                                        disabled: props.disabled,
+                                        text: 'Delete Selected',
+                                        disabled: props.disabled || selectedItems.length === 0,
                                         iconProps: { iconName: 'Delete' },
                                         onClick: () => { deleteItems() }
                                     }
                                 ]}
-                                ariaLabel="Todo actions" />
+                                ariaLabel="Product actions" />
                         </Stack.Item>
                     </Stack>
                 </form>
             </Stack.Item>
-            {items.length > 0 &&
+            {items.length > 0 ? (
                 <Stack.Item>
                     <MarqueeSelection selection={selection}>
                         <DetailsList
@@ -231,28 +161,17 @@ const TodoItemListPane: FC<TodoItemListPaneProps> = (props: TodoItemListPaneProp
                             onRenderItemColumn={renderItemColumn}
                             selection={selection}
                             layoutMode={DetailsListLayoutMode.justified}
-                            selectionPreservedOnEmptyClick={true}
-                            ariaLabelForSelectionColumn="Toggle selection"
-                            ariaLabelForSelectAllCheckbox="Toggle selection for all items"
-                            checkButtonAriaLabel="select row"
                             checkboxVisibility={CheckboxVisibility.always}
                             onActiveItemChanged={selectItem} />
                     </MarqueeSelection>
                 </Stack.Item>
-            }
-            {!props.items &&
+            ) : (
                 <Stack.Item align="center" tokens={stackItemPadding}>
-                    <Label>Loading List Items...</Label>
-                    <Spinner size={SpinnerSize.large} labelPosition="top" /> 
+                    {props.items ? <Text>No products found.</Text> : <Spinner size={SpinnerSize.large} label="Loading Products..." />}
                 </Stack.Item>
-            }
-            {props.items && items.length === 0 &&
-                <Stack.Item align="center" tokens={stackItemPadding}>
-                    <Text>This list is empty.</Text>
-                </Stack.Item>
-            }
+            )}
         </Stack>
     );
 };
 
-export default TodoItemListPane;
+export default ProductListPane;

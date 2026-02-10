@@ -1,85 +1,81 @@
-import express from "express";
-import { Request } from "express";
-import { PagingQueryParams } from "../routes/common";
-import { TodoItem, TodoItemState } from "../models/todoItem";
-import { TodoItemRepository } from "../models/todoItemRepository";
+import express, { Request, Response } from "express";
+import { PagingQueryParams } from "./common";
+import { Product, ProductStatus } from "../models/todoItem";
+import { ProductRepository } from "../models/todoItemRepository";
 
 const router = express.Router({ mergeParams: true });
 
-type TodoItemPathParams = {
-    listId: string
-    itemId: string
-    state?: TodoItemState
+type ProductPathParams = {
+    productId: string
 }
 
 /**
- * Gets a list of Todo item within a list
+ * Gets a list of products
  */
-router.get("/", async (req: Request<TodoItemPathParams, unknown, unknown, PagingQueryParams>, res) => {
+router.get("/", async (req: Request<unknown, unknown, unknown, PagingQueryParams & { category?: string }>, res: Response) => {
     try {
-        const repository = new TodoItemRepository();
-        const items = await repository.findByListId(req.params.listId);
-        
+        const repository = new ProductRepository();
+        let products = await repository.findAll();
+
+        // Filter by category if provided
+        if (req.query.category) {
+            products = products.filter((p: Product) => p.category === req.query.category);
+        }
+
         // Apply pagination
-        const skip = req.query.skip ? parseInt(req.query.skip) : 0;
-        const top = req.query.top ? parseInt(req.query.top) : 20;
-        const paginatedItems = items.slice(skip, skip + top);
-        
-        res.json(paginatedItems);
+        const skip = req.query.skip ? parseInt(req.query.skip as string) : 0;
+        const top = req.query.top ? parseInt(req.query.top as string) : 20;
+        const paginatedProducts = products.slice(skip, skip + top);
+
+        res.json(paginatedProducts);
     } catch (err) {
-        console.error("Error fetching items:", err);
+        console.error("Error fetching products:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 });
 
 /**
- * Creates a new Todo item within a list
+ * Creates a new product
  */
-router.post("/", async (req: Request<TodoItemPathParams, unknown, TodoItem>, res) => {
+router.post("/", async (req: Request<unknown, unknown, Product>, res: Response) => {
     try {
-        const repository = new TodoItemRepository();
-        const item = await repository.create({
-            ...req.body,
-            listId: req.params.listId
-        });
+        const repository = new ProductRepository();
+        const product = await repository.create(req.body);
 
-        res.setHeader("location", `${req.protocol}://${req.get("Host")}/lists/${req.params.listId}/${item.id}`);
-        res.status(201).json(item);
+        res.setHeader("location", `${req.protocol}://${req.get("Host")}/products/${product.id}`);
+        res.status(201).json(product);
     } catch (err) {
-        console.error("Error creating item:", err);
+        console.error("Error creating product:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 });
 
 /**
- * Gets a Todo item with the specified ID within a list
+ * Gets a product with the specified ID
  */
-router.get("/:itemId", async (req: Request<TodoItemPathParams>, res) => {
+router.get("/:productId", async (req: Request<ProductPathParams>, res: Response) => {
     try {
-        const repository = new TodoItemRepository();
-        const item = await repository.findById(req.params.itemId);
+        const repository = new ProductRepository();
+        const product = await repository.findById(req.params.productId);
 
-        if (!item || item.listId !== req.params.listId) {
+        if (!product) {
             return res.status(404).send();
         }
 
-        res.json(item);
+        res.json(product);
     } catch (err) {
-        console.error("Error fetching item:", err);
+        console.error("Error fetching product:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 });
 
 /**
- * Updates a Todo item with the specified ID within a list
+ * Updates a product with the specified ID
  */
-router.put("/:itemId", async (req: Request<TodoItemPathParams, unknown, TodoItem>, res) => {
+router.put("/:productId", async (req: Request<ProductPathParams, unknown, Product>, res: Response) => {
     try {
-        const repository = new TodoItemRepository();
-        const updated = await repository.update(req.params.itemId, {
-            ...req.body,
-            listId: req.params.listId
-        });
+        const repository = new ProductRepository();
+        const updated = await repository.update(req.params.productId, req.body);
 
         if (!updated) {
             return res.status(404).send();
@@ -87,18 +83,18 @@ router.put("/:itemId", async (req: Request<TodoItemPathParams, unknown, TodoItem
 
         res.json(updated);
     } catch (err) {
-        console.error("Error updating item:", err);
+        console.error("Error updating product:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 });
 
 /**
- * Deletes a Todo item with the specified ID within a list
+ * Deletes a product with the specified ID
  */
-router.delete("/:itemId", async (req, res) => {
+router.delete("/:productId", async (req: Request<ProductPathParams>, res: Response) => {
     try {
-        const repository = new TodoItemRepository();
-        const deleted = await repository.delete(req.params.itemId);
+        const repository = new ProductRepository();
+        const deleted = await repository.delete(req.params.productId);
 
         if (!deleted) {
             return res.status(404).send();
@@ -106,56 +102,7 @@ router.delete("/:itemId", async (req, res) => {
 
         res.status(204).send();
     } catch (err) {
-        console.error("Error deleting item:", err);
-        res.status(500).json({ error: "Internal server error" });
-    }
-});
-
-/**
- * Get a list of items by state
- */
-router.get("/state/:state", async (req: Request<TodoItemPathParams, unknown, unknown, PagingQueryParams>, res) => {
-    try {
-        const repository = new TodoItemRepository();
-        const items = await repository.findByListId(req.params.listId);
-        
-        // Filter by state
-        const filteredItems = items.filter(item => item.state === req.params.state);
-        
-        // Apply pagination
-        const skip = req.query.skip ? parseInt(req.query.skip) : 0;
-        const top = req.query.top ? parseInt(req.query.top) : 20;
-        const paginatedItems = filteredItems.slice(skip, skip + top);
-        
-        res.json(paginatedItems);
-    } catch (err) {
-        console.error("Error fetching items by state:", err);
-        res.status(500).json({ error: "Internal server error" });
-    }
-});
-
-router.put("/state/:state", async (req: Request<TodoItemPathParams, unknown, string[]>, res) => {
-    try {
-        const repository = new TodoItemRepository();
-        const completedDate = req.params.state === TodoItemState.Done ? new Date() : undefined;
-
-        const updateTasks = req.body.map(async (id) => {
-            const item = await repository.findById(id);
-            if (!item || item.listId !== req.params.listId) {
-                throw new Error(`Item ${id} not found or doesn't belong to list ${req.params.listId}`);
-            }
-            
-            return repository.update(id, { 
-                state: req.params.state as TodoItemState, 
-                completedDate: completedDate 
-            });
-        });
-
-        await Promise.all(updateTasks);
-
-        res.status(204).send();
-    } catch (err) {
-        console.error("Error updating items state:", err);
+        console.error("Error deleting product:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 });

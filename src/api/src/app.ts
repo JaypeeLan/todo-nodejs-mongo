@@ -19,13 +19,13 @@ const allowOrigins = process.env.API_ALLOW_ORIGINS;
 // allowing all origins.
 const environment = process.env.NODE_ENV;
 
-const originList = ():string[]|string => {
-    
+const originList = (): string[] | string => {
+
     if (environment && environment === "development") {
         console.log(`Allowing requests from any origins. NODE_ENV=${environment}`);
         return "*";
     }
-    
+
     const origins = [
         "https://portal.azure.com",
         "https://ms.portal.azure.com",
@@ -49,14 +49,14 @@ export const createApp = async (): Promise<Express> => {
     await configureCosmos(config.database);
     // Middleware
     app.use(express.json());
-    
+
     app.use(cors({
         origin: originList()
     }));
 
     // API Routes
-    app.use("/lists/:listId/items", items);
-    app.use("/lists", lists);
+    app.use("/products", items);
+
 
     // Swagger UI
     const swaggerDocument = yaml.load("./openapi.yaml");

@@ -1,116 +1,55 @@
 import { useEffect, useContext, useMemo, useState, Fragment } from 'react';
-import { IconButton, IContextualMenuProps, IIconProps, Stack, Text, Shimmer, ShimmerElementType } from '@fluentui/react';
-import TodoItemListPane from '../components/todoItemListPane';
-import { TodoItem, TodoItemState } from '../models';
+import { Stack, Text, Shimmer, ShimmerElementType } from '@fluentui/react';
+import ProductListPane from '../components/todoItemListPane';
+import { Product } from '../models';
 import * as itemActions from '../actions/itemActions';
-import * as listActions from '../actions/listActions';
 import { TodoContext } from '../components/todoContext';
 import { AppContext } from '../models/applicationState';
 import { ItemActions } from '../actions/itemActions';
-import { ListActions } from '../actions/listActions';
-import { stackItemPadding, stackPadding, titleStackStyles } from '../ux/styles';
+import { stackPadding, titleStackStyles } from '../ux/styles';
 import { useNavigate, useParams } from 'react-router-dom';
 import { bindActionCreators } from '../actions/actionCreators';
-import WithApplicationInsights from '../components/telemetryWithAppInsights.tsx';
+import WithApplicationInsights from '../components/telemetryWithAppInsights';
 
 const HomePage = () => {
     const navigate = useNavigate();
     const appContext = useContext<AppContext>(TodoContext)
-    const { listId, itemId } = useParams();
+    const { productId } = useParams();
     const actions = useMemo(() => ({
-        lists: bindActionCreators(listActions, appContext.dispatch) as unknown as ListActions,
-        items: bindActionCreators(itemActions, appContext.dispatch) as unknown as ItemActions,
+        products: bindActionCreators(itemActions, appContext.dispatch) as unknown as ItemActions,
     }), [appContext.dispatch]);
 
     const [isReady, setIsReady] = useState(false)
 
-    // Create default list of does not exist
+    // Load products on initial load
     useEffect(() => {
-        if (appContext.state.lists?.length === 0) {
-            actions.lists.save({ name: 'My List' });
+        const loadProducts = async () => {
+            await actions.products.list(''); // pass empty string as we refactored listId out
+            setIsReady(true)
         }
-    }, [actions.lists, appContext.state.lists?.length])
+        loadProducts();
+    }, [actions.products]);
 
-    // Select default list on initial load
+    // React to selected product change
     useEffect(() => {
-        if (appContext.state.lists?.length && !listId && !appContext.state.selectedList) {
-            const defaultList = appContext.state.lists[0];
-            navigate(`/lists/${defaultList.id}`);
+        if (productId && appContext.state.selectedItem?.id !== productId) {
+            actions.products.load('', productId);
         }
-    }, [appContext.state.lists, appContext.state.selectedList, listId, navigate])
+    }, [actions.products, appContext.state.selectedItem?.id, productId])
 
-    // React to selected list changes
-    useEffect(() => {
-        if (listId && appContext.state.selectedList?.id !== listId) {
-            actions.lists.load(listId);
-        }
-    }, [actions.lists, appContext.state.selectedList, listId])
-
-    // React to selected item change
-    useEffect(() => {
-        if (listId && itemId && appContext.state.selectedItem?.id !== itemId) {
-            actions.items.load(listId, itemId);
-        }
-    }, [actions.items, appContext.state.selectedItem?.id, itemId, listId])
-
-    // Load items for selected list
-    useEffect(() => {
-        if (appContext.state.selectedList?.id && !appContext.state.selectedList.items) {
-            const loadListItems = async (listId: string) => {
-                await actions.items.list(listId);
-                setIsReady(true)
-            }
-
-            loadListItems(appContext.state.selectedList.id)
-        }
-    }, [actions.items, appContext.state.selectedList?.id, appContext.state.selectedList?.items])
-
-    const onItemCreated = async (item: TodoItem) => {
-        return await actions.items.save(item.listId, item);
+    const onProductCreated = async (item: Product) => {
+        return await actions.products.save('', item);
     }
 
-    const onItemCompleted = (item: TodoItem) => {
-        item.state = TodoItemState.Done;
-        item.completedDate = new Date();
-        actions.items.save(item.listId, item);
+    const onProductSelected = (item?: Product) => {
+        actions.products.select(item);
     }
 
-    const onItemSelected = (item?: TodoItem) => {
-        actions.items.select(item);
-    }
-
-    const onItemDeleted = (item: TodoItem) => {
+    const onProductDeleted = (item: Product) => {
         if (item.id) {
-            actions.items.remove(item.listId, item);
-            navigate(`/lists/${item.listId}`);
+            actions.products.remove('', item);
+            navigate(`/products`);
         }
-    }
-
-    const deleteList = () => {
-        if (appContext.state.selectedList?.id) {
-            actions.lists.remove(appContext.state.selectedList.id);
-            navigate('/lists');
-        }
-    }
-
-    const iconProps: IIconProps = {
-        iconName: 'More',
-        styles: {
-            root: {
-                fontSize: 14
-            }
-        }
-    }
-
-    const menuProps: IContextualMenuProps = {
-        items: [
-            {
-                key: 'delete',
-                text: 'Delete List',
-                iconProps: { iconName: 'Delete' },
-                onClick: () => { deleteList() }
-            }
-        ]
     }
 
     return (
@@ -119,39 +58,28 @@ const HomePage = () => {
                 <Stack horizontal styles={titleStackStyles} tokens={stackPadding}>
                     <Stack.Item grow={1}>
                         <Shimmer width={300}
-                            isDataLoaded={!!appContext.state.selectedList}
+                            isDataLoaded={isReady}
                             shimmerElements={
                                 [
                                     { type: ShimmerElementType.line, height: 20 }
                                 ]
                             } >
                             <Fragment>
-                                <Text block variant="xLarge">{appContext.state.selectedList?.name}</Text>
-                                <Text variant="small">{appContext.state.selectedList?.description}</Text>
+                                <Text block variant="xLarge">Product Catalog</Text>
+                                <Text variant="small">Manage your ecommerce inventory</Text>
                             </Fragment>
                         </Shimmer>
                     </Stack.Item>
-                    <Stack.Item>
-                        <IconButton
-                            disabled={!isReady}
-                            menuProps={menuProps}
-                            iconProps={iconProps}
-                            styles={{ root: { fontSize: 16 } }}
-                            title="List Actions"
-                            ariaLabel="List Actions" />
-                    </Stack.Item>
                 </Stack>
             </Stack.Item>
-            <Stack.Item tokens={stackItemPadding}>
-                <TodoItemListPane
-                    list={appContext.state.selectedList}
-                    items={appContext.state.selectedList?.items}
-                    selectedItem={appContext.state.selectedItem}
+            <Stack.Item>
+                <ProductListPane
+                    items={appContext.state.selectedList?.items as Product[]} // In this refactor, items are stored in selectedList.items for now to minimize reducer changes
+                    selectedItem={appContext.state.selectedItem as Product}
                     disabled={!isReady}
-                    onSelect={onItemSelected}
-                    onCreated={onItemCreated}
-                    onComplete={onItemCompleted}
-                    onDelete={onItemDeleted} />
+                    onSelect={onProductSelected}
+                    onCreated={onProductCreated}
+                    onDelete={onProductDeleted} />
             </Stack.Item>
         </Stack >
     );
@@ -160,3 +88,4 @@ const HomePage = () => {
 const HomePageWithTelemetry = WithApplicationInsights(HomePage, 'HomePage');
 
 export default HomePageWithTelemetry;
+
