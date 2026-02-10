@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { PagingQueryParams } from "./common";
-import { Product } from "../models/todoItem";
-import { ProductRepository } from "../models/todoItemRepository";
+import { Product } from "../models/product";
+import { ProductRepository } from "../models/productRepository";
 
 const router = express.Router({ mergeParams: true });
 

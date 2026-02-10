@@ -1,7 +1,7 @@
-import { createContext } from "react";
 import { AppContext, getDefaultState } from "../models/applicationState";
+import { createContext } from "react";
 
 const initialState = getDefaultState();
 const dispatch = () => { return };
 
-export const TodoContext = createContext<AppContext>({ state: initialState, dispatch: dispatch });
+export const ProductContext = createContext<AppContext>({ state: initialState, dispatch: dispatch });

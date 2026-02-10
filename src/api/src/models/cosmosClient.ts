@@ -1,129 +1,58 @@
-
-import { CosmosClient, Container, Database } from "@azure/cosmos";
-import { DefaultAzureCredential } from "@azure/identity";
+import mongoose from "mongoose";
 import { DatabaseConfig } from "../config/appConfig";
 import { logger } from "../config/observability";
-
-let cosmosClient: CosmosClient;
-let database: Database;
-let todoListContainer: Container;
-let todoItemContainer: Container;
+import { ProductModel } from "./product";
+import { seedProducts } from "./seedData";
 
 export const configureCosmos = async (config: DatabaseConfig) => {
-    // Skip Cosmos DB configuration in test environment
+    // Skip configuration in test environment
     if (process.env.NODE_ENV === "test") {
-        logger.info("Skipping Cosmos DB configuration in test environment");
+        logger.info("Skipping Database configuration in test environment");
         return;
     }
 
     try {
-        logger.info("Connecting to Cosmos DB using managed identity...");
+        const connectionString = config.connectionString;
 
-        const credential = new DefaultAzureCredential();
+        if (!connectionString) {
+            logger.warn("No MONGODB_URI or AZURE_COSMOS_CONNECTION_STRING found. Falling back to local MongoDB.");
+        }
 
-        cosmosClient = new CosmosClient({
-            endpoint: config.endpoint,
-            aadCredentials: credential,
+        const uri = connectionString || "mongodb://localhost:27017/Todo";
+
+        logger.info(`Connecting to MongoDB at ${uri.replace(/:([^:@]{1,})@/, ":****@")}...`);
+
+        await mongoose.connect(uri, {
+            dbName: config.databaseName || "Todo"
         });
 
-        database = cosmosClient.database(config.databaseName);
-        todoListContainer = database.container("TodoList");
-        todoItemContainer = database.container("TodoItem");
+        logger.info("MongoDB connected successfully!");
 
-        // Test the connection
-        await database.read();
-        logger.info("Cosmos DB connected successfully!");
+        // Seed database
+        await seedDatabase();
 
     } catch (err) {
-        logger.error(`Cosmos DB connection error: ${err}`);
+        logger.error(`MongoDB connection error: ${err}`);
         logger.error("The application will continue to run, but database operations will fail.");
-        // We don't rethrow here to allow the app to start up and serve at least the health check
     }
 };
 
-export const getTodoListContainer = () => {
-    if (process.env.NODE_ENV === "test") {
-        // Return a mock container for testing
-        return createMockContainer();
+const seedDatabase = async () => {
+    try {
+        const count = await ProductModel.countDocuments();
+        if (count === 0) {
+            logger.info("No products found in database. Seeding initial data...");
+            await ProductModel.insertMany(seedProducts);
+            logger.info(`Successfully seeded ${seedProducts.length} products.`);
+        } else {
+            logger.info(`Database already contains ${count} products. Skipping seed.`);
+        }
+    } catch (err) {
+        logger.error(`Failed to seed database: ${err}`);
     }
-    if (!todoListContainer) {
-        throw new Error("Cosmos DB not initialized. Call configureCosmos first.");
-    }
-    return todoListContainer;
 };
 
 export const getTodoItemContainer = () => {
-    if (process.env.NODE_ENV === "test") {
-        // Return a mock container for testing
-        return createMockContainer();
-    }
-    if (!todoItemContainer) {
-        throw new Error("Cosmos DB not initialized. Call configureCosmos first.");
-    }
-    return todoItemContainer;
-};
-
-// Mock container for testing
-const mockData = new Map<string, any>();
-
-const createMockContainer = () => ({
-    items: {
-        create: async (item: any) => {
-            const resource = {
-                id: `mock-${Date.now()}-${Math.random()}`,
-                ...item,
-                createdDate: new Date(),
-                updatedDate: new Date()
-            };
-            mockData.set(resource.id, resource);
-            return { resource };
-        },
-        readAll: () => ({
-            fetchAll: async () => ({
-                resources: Array.from(mockData.values())
-            })
-        }),
-        query: (spec: any) => ({
-            fetchAll: async () => {
-                const resources = Array.from(mockData.values());
-                // Simple query implementation for tests
-                if (spec.query && spec.query.includes("listId")) {
-                    const listIdParam = spec.parameters?.find((p: any) => p.name === "@listId");
-                    if (listIdParam) {
-                        return {
-                            resources: resources.filter((r: any) => r.listId === listIdParam.value)
-                        };
-                    }
-                }
-                return { resources };
-            }
-        }),
-    },
-    item: (id: string) => ({
-        read: async () => ({
-            resource: mockData.get(id) || null
-        }),
-        replace: async (item: any) => {
-            const resource = { ...item, updatedDate: new Date() };
-            mockData.set(id, resource);
-            return { resource };
-        },
-        delete: async () => {
-            mockData.delete(id);
-            return {};
-        },
-    }),
-});
-
-export const getCosmosClient = () => {
-    if (!cosmosClient) {
-        throw new Error("Cosmos DB not initialized. Call configureCosmos first.");
-    }
-    return cosmosClient;
-};
-
-export const clearMockData = () => {
-    if (process.env.NODE_ENV === "test") {
-        mockData.clear();
-    }
+    // This is a dummy for now to avoid breaking imports during refactor
+    return null;
 };

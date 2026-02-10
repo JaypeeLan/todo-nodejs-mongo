@@ -35,6 +35,7 @@ export const getConfig: () => Promise<AppConfig> = async () => {
         database: {
             endpoint: databaseConfig.endpoint,
             databaseName: databaseConfig.databaseName,
+            connectionString: process.env.MONGODB_URI || process.env.AZURE_COSMOS_CONNECTION_STRING || databaseConfig.connectionString,
         },
     };
 };

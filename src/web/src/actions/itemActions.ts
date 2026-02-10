@@ -1,6 +1,6 @@
 import { Dispatch } from "react";
 import { Product } from "../models";
-import { ProductService } from "../services/itemService";
+import { ProductService } from "../services/productService";
 import { ActionTypes } from "./common";
 import config from "../config"
 import { ActionMethod, createPayloadAction, PayloadAction } from "./actionCreators";
@@ -59,28 +59,27 @@ export const remove = (item: Product): ActionMethod<void> => async (dispatch: Di
 }
 
 export interface ListItemsAction extends PayloadAction<string, Product[]> {
-    type: ActionTypes.LOAD_TODO_ITEMS
+    type: ActionTypes.LOAD_PRODUCTS
 }
 
 export interface SelectItemAction extends PayloadAction<string, Product | undefined> {
-    type: ActionTypes.SELECT_TODO_ITEM
+    type: ActionTypes.SELECT_PRODUCT
 }
 
 export interface LoadItemAction extends PayloadAction<string, Product> {
-    type: ActionTypes.LOAD_TODO_ITEM
+    type: ActionTypes.LOAD_PRODUCT
 }
 
 export interface SaveItemAction extends PayloadAction<string, Product> {
-    type: ActionTypes.SAVE_TODO_ITEM
+    type: ActionTypes.SAVE_PRODUCT
 }
 
 export interface DeleteItemAction extends PayloadAction<string, string> {
-    type: ActionTypes.DELETE_TODO_ITEM
+    type: ActionTypes.DELETE_PRODUCT
 }
 
-const listItemsAction = createPayloadAction<ListItemsAction>(ActionTypes.LOAD_TODO_ITEMS);
-const selectItemAction = createPayloadAction<SelectItemAction>(ActionTypes.SELECT_TODO_ITEM);
-const loadItemAction = createPayloadAction<LoadItemAction>(ActionTypes.LOAD_TODO_ITEM);
-const saveItemAction = createPayloadAction<SaveItemAction>(ActionTypes.SAVE_TODO_ITEM);
-const deleteItemAction = createPayloadAction<DeleteItemAction>(ActionTypes.DELETE_TODO_ITEM);
-
+const listItemsAction = createPayloadAction<ListItemsAction>(ActionTypes.LOAD_PRODUCTS);
+const selectItemAction = createPayloadAction<SelectItemAction>(ActionTypes.SELECT_PRODUCT);
+const loadItemAction = createPayloadAction<LoadItemAction>(ActionTypes.LOAD_PRODUCT);
+const saveItemAction = createPayloadAction<SaveItemAction>(ActionTypes.SAVE_PRODUCT);
+const deleteItemAction = createPayloadAction<DeleteItemAction>(ActionTypes.DELETE_PRODUCT);

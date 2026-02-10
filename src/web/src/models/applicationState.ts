@@ -1,24 +1,20 @@
+import { AppActions } from "../actions/common";
+import { Product } from "./product";
 import { Dispatch } from "react";
-import { TodoActions } from "../actions/common";
-import { Product } from "./todoItem";
-import { TodoList } from "./todoList";
 
 export interface AppContext {
     state: ApplicationState
-    dispatch: Dispatch<TodoActions>
+    dispatch: Dispatch<AppActions>
 }
 
 export interface ApplicationState {
-    lists?: TodoList[]
-    selectedList?: TodoList
+    products?: Product[]
     selectedItem?: Product
 }
 
 export const getDefaultState = (): ApplicationState => {
     return {
-        lists: undefined,
-        selectedList: undefined,
+        products: [],
         selectedItem: undefined
     }
 }
-

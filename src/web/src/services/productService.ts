@@ -6,4 +6,3 @@ export class ProductService extends RestService<Product> {
         super(baseUrl, baseRoute);
     }
 }
-

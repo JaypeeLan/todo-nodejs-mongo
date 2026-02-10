@@ -1,11 +1,10 @@
-import { Reducer } from "react";
-import { TodoActions } from "../actions/common";
-import { listsReducer } from "./listsReducer";
+import { AppActions } from "../actions/common";
+import { productsReducer } from "./productsReducer";
 import { selectedItemReducer } from "./selectedItemReducer";
-import { selectedListReducer } from "./selectedListReducer";
+import { Reducer } from "react";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const combineReducers = (slices: {[key: string]: Reducer<any, TodoActions>}) => (prevState: any, action: TodoActions) =>
+const combineReducers = (slices: { [key: string]: Reducer<any, AppActions> }) => (prevState: any, action: AppActions) =>
     Object.keys(slices).reduce(
         (nextState, nextProp) => ({
             ...nextState,
@@ -15,7 +14,6 @@ const combineReducers = (slices: {[key: string]: Reducer<any, TodoActions>}) => 
     );
 
 export default combineReducers({
-    lists: listsReducer,
-    selectedList: selectedListReducer,
+    products: productsReducer,
     selectedItem: selectedItemReducer,
 });
