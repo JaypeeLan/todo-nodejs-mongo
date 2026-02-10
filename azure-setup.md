@@ -19,7 +19,7 @@ This guide describes how to deploy the ecommerce application to Azure using the 
 ### 2. App Service (Web App)
 1.  Search for **App Services** and click **Create**.
 2.  Select **Web App**.
-3.  Choose **Node 18 LTS** as the runtime stack and **Linux** as the OS.
+3.  Choose **Node 20 LTS** as the runtime stack and **Linux** as the OS.
 4.  Configure the name (e.g., `gmc-app`) and resource group.
 5.  Click **Create**.
 
