@@ -1,8 +1,8 @@
 import { Reducer } from "react";
 import { ActionTypes, TodoActions } from "../actions/common";
-import { TodoItem } from "../models"
+import { Product } from "../models"
 
-export const selectedItemReducer: Reducer<TodoItem | undefined, TodoActions> = (state: TodoItem | undefined, action: TodoActions): TodoItem | undefined => {
+export const selectedItemReducer: Reducer<Product | undefined, TodoActions> = (state: Product | undefined, action: TodoActions): Product | undefined => {
     switch (action.type) {
         case ActionTypes.SELECT_TODO_ITEM:
         case ActionTypes.LOAD_TODO_ITEM:

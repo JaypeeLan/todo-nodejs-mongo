@@ -1,6 +1,6 @@
 import { Dispatch } from "react";
 import { TodoActions } from "../actions/common";
-import { TodoItem } from "./todoItem";
+import { Product } from "./todoItem";
 import { TodoList } from "./todoList";
 
 export interface AppContext {
@@ -11,7 +11,7 @@ export interface AppContext {
 export interface ApplicationState {
     lists?: TodoList[]
     selectedList?: TodoList
-    selectedItem?: TodoItem
+    selectedItem?: Product
 }
 
 export const getDefaultState = (): ApplicationState => {

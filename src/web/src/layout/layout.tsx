@@ -1,4 +1,4 @@
-import { FC, ReactElement, useContext, useEffect, useMemo } from 'react';
+import { FC, ReactElement, useContext, useMemo } from 'react';
 import Header from './header';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import HomePage from '../pages/homePage';
@@ -20,7 +20,7 @@ const Layout: FC = (): ReactElement => {
     }), [appContext.dispatch]);
 
     const onItemEdited = (item: Product) => {
-        actions.items.save('', item); // listId no longer needed
+        actions.items.save(item); // listId no longer needed
         actions.items.select(undefined);
         navigate(`/products`);
     }

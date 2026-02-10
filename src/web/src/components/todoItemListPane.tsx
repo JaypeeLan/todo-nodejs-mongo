@@ -1,4 +1,4 @@
-import { CommandBar, DetailsList, DetailsListLayoutMode, IStackStyles, Selection, Label, Spinner, SpinnerSize, Stack, IIconProps, SearchBox, Text, IGroup, IColumn, MarqueeSelection, CheckboxVisibility, IDetailsGroupRenderProps, getTheme, Image, ImageFit } from '@fluentui/react';
+import { CommandBar, DetailsList, DetailsListLayoutMode, IStackStyles, Selection, Spinner, SpinnerSize, Stack, IIconProps, SearchBox, Text, IGroup, IColumn, MarqueeSelection, CheckboxVisibility, IDetailsGroupRenderProps, getTheme, Image, ImageFit } from '@fluentui/react';
 import { ReactElement, useEffect, useState, FormEvent, FC } from 'react';
 import { useNavigate } from 'react-router';
 import { Product, ProductStatus } from '../models';

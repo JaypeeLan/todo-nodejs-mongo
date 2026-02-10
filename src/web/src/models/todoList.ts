@@ -1,9 +1,9 @@
-import { TodoItem } from "./todoItem";
+import { Product } from "./todoItem";
 
 export interface TodoList {
     id?: string
     name: string
-    items?: TodoItem[]
+    items?: Product[]
     description?: string
     createdDate?: Date
     updatedDate?: Date

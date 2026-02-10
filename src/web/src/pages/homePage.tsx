@@ -24,7 +24,7 @@ const HomePage = () => {
     // Load products on initial load
     useEffect(() => {
         const loadProducts = async () => {
-            await actions.products.list(''); // pass empty string as we refactored listId out
+            await actions.products.list(); // pass empty string as we refactored listId out
             setIsReady(true)
         }
         loadProducts();
@@ -33,12 +33,12 @@ const HomePage = () => {
     // React to selected product change
     useEffect(() => {
         if (productId && appContext.state.selectedItem?.id !== productId) {
-            actions.products.load('', productId);
+            actions.products.load(productId);
         }
     }, [actions.products, appContext.state.selectedItem?.id, productId])
 
     const onProductCreated = async (item: Product) => {
-        return await actions.products.save('', item);
+        return await actions.products.save(item);
     }
 
     const onProductSelected = (item?: Product) => {
@@ -47,7 +47,7 @@ const HomePage = () => {
 
     const onProductDeleted = (item: Product) => {
         if (item.id) {
-            actions.products.remove('', item);
+            actions.products.remove(item);
             navigate(`/products`);
         }
     }
