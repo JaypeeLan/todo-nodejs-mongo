@@ -14,12 +14,7 @@ export enum LogLevel {
 export const logger = winston.createLogger({
     level: "info",
     format: winston.format.json(),
-    transports: [
-        new winston.transports.File({ filename: "error.log", level: "error" }),
-    ],
-    exceptionHandlers: [
-        new winston.transports.File({ filename: "exceptions.log" }),
-    ]
+    transports: [],
 });
 
 export const observability = (config: ObservabilityConfig) => {
@@ -59,8 +54,7 @@ export const observability = (config: ObservabilityConfig) => {
     }
 };
 
-if (process.env.NODE_ENV !== "production") {
-    logger.add(new winston.transports.Console({
-        format: winston.format.simple()
-    }));
-}
+// Always add console logger for Azure to capture
+logger.add(new winston.transports.Console({
+    format: winston.format.simple()
+}));

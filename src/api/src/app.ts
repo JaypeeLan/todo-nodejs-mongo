@@ -2,6 +2,8 @@ import express, { Express } from "express";
 import swaggerUI from "swagger-ui-express";
 import cors from "cors";
 import yaml from "yamljs";
+import path from "path";
+import fs from "fs";
 import { getConfig } from "./config";
 import lists from "./routes/lists";
 import items from "./routes/items";
@@ -50,6 +52,8 @@ export const createApp = async (): Promise<Express> => {
     // Middleware
     app.use(express.json());
 
+    app.get("/health", (req, res) => res.status(200).send("OK"));
+
     app.use(cors({
         origin: originList()
     }));
@@ -57,16 +61,23 @@ export const createApp = async (): Promise<Express> => {
     // API Routes
     app.use("/products", items);
 
-
     // Swagger UI
     const swaggerDocument = yaml.load("./openapi.yaml");
     app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 
     // Serve Static Files
-    app.use(express.static("public"));
-    app.get("*", (req, res) => {
-        res.sendFile("index.html", { root: "public" });
-    });
+    const publicPath = path.join(__dirname, "../public");
+    if (fs.existsSync(publicPath)) {
+        app.use(express.static(publicPath));
+        app.get("*", (req, res) => {
+            const indexPath = path.join(publicPath, "index.html");
+            if (fs.existsSync(indexPath)) {
+                res.sendFile(indexPath);
+            } else {
+                res.status(404).send("Frontend not found");
+            }
+        });
+    }
 
     return app;
 };

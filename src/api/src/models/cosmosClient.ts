@@ -15,12 +15,12 @@ export const configureCosmos = async (config: DatabaseConfig) => {
         logger.info("Skipping Cosmos DB configuration in test environment");
         return;
     }
-    
+
     try {
         logger.info("Connecting to Cosmos DB using managed identity...");
-        
+
         const credential = new DefaultAzureCredential();
-        
+
         cosmosClient = new CosmosClient({
             endpoint: config.endpoint,
             aadCredentials: credential,
@@ -33,10 +33,11 @@ export const configureCosmos = async (config: DatabaseConfig) => {
         // Test the connection
         await database.read();
         logger.info("Cosmos DB connected successfully!");
-        
+
     } catch (err) {
         logger.error(`Cosmos DB connection error: ${err}`);
-        throw err;
+        logger.error("The application will continue to run, but database operations will fail.");
+        // We don't rethrow here to allow the app to start up and serve at least the health check
     }
 };
 
@@ -67,9 +68,9 @@ const mockData = new Map<string, any>();
 
 const createMockContainer = () => ({
     items: {
-        create: async (item: any) => { 
-            const resource = { 
-                id: `mock-${Date.now()}-${Math.random()}`, 
+        create: async (item: any) => {
+            const resource = {
+                id: `mock-${Date.now()}-${Math.random()}`,
                 ...item,
                 createdDate: new Date(),
                 updatedDate: new Date()
@@ -77,12 +78,12 @@ const createMockContainer = () => ({
             mockData.set(resource.id, resource);
             return { resource };
         },
-        readAll: () => ({ 
-            fetchAll: async () => ({ 
-                resources: Array.from(mockData.values()) 
-            }) 
+        readAll: () => ({
+            fetchAll: async () => ({
+                resources: Array.from(mockData.values())
+            })
         }),
-        query: (spec: any) => ({ 
+        query: (spec: any) => ({
             fetchAll: async () => {
                 const resources = Array.from(mockData.values());
                 // Simple query implementation for tests
@@ -99,10 +100,10 @@ const createMockContainer = () => ({
         }),
     },
     item: (id: string) => ({
-        read: async () => ({ 
-            resource: mockData.get(id) || null 
+        read: async () => ({
+            resource: mockData.get(id) || null
         }),
-        replace: async (item: any) => { 
+        replace: async (item: any) => {
             const resource = { ...item, updatedDate: new Date() };
             mockData.set(id, resource);
             return { resource };
