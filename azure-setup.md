@@ -37,8 +37,19 @@ This guide describes how to deploy the ecommerce application to Azure using the 
 1.  In your GitHub repository, go to **Settings > Secrets and variables > Actions**.
 2.  Add a new repository secret:
     - **Name**: `AZURE_WEBAPP_PUBLISH_PROFILE`
-    - **Value**: The publish profile for your Web App. 
-      - (In Azure Portal, go to your Web App's **Overview** page and click **Get publish profile**).
+    - **Value**: The content of the publish profile file you downloaded.
+      - **IMPORTANT**: Open the `.publishsettings` file with a text editor, copy **EVERYTHING**, and paste it into the secret value.
+
+## Troubleshooting: "Publish profile does not contain kudu URL"
+
+If your deployment fails with this error, it's usually because Azure has disabled **Basic Authentication** for your Web App's deployment interface.
+
+1.  In the Azure Portal, go to your **Web App**.
+2.  Go to **Settings > Configuration**.
+3.  Click the **General settings** tab.
+4.  Scroll down to **SCM Basic Auth Publishing Credentials** and set it to **On**.
+5.  Click **Save**.
+6.  **Redownload** the publish profile (Overview > Get publish profile) and update the GitHub secret.
 
 ## Step 4: Verify Deployment
 
