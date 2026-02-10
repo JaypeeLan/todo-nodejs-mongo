@@ -2,7 +2,7 @@ import request from "supertest";
 import { Server } from "http";
 import { Express } from "express";
 import { createApp } from "../app";
-import { TodoItem, TodoItemState } from "../models/todoItem";
+import { Product as TodoItem, ProductStatus as TodoItemState } from "../models/todoItem";
 import { TodoList } from "../models/todoList";
 
 describe("API", () => {

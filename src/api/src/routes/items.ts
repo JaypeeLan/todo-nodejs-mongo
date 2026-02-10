@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { PagingQueryParams } from "./common";
-import { Product, ProductStatus } from "../models/todoItem";
+import { Product } from "../models/todoItem";
 import { ProductRepository } from "../models/todoItemRepository";
 
 const router = express.Router({ mergeParams: true });

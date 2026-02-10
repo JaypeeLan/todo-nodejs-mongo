@@ -77,4 +77,8 @@ export class ProductRepository {
             throw error;
         }
     }
+
+    async deleteByListId(_: string): Promise<void> {
+        return Promise.resolve();
+    }
 }

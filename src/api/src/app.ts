@@ -60,7 +60,13 @@ export const createApp = async (): Promise<Express> => {
 
     // Swagger UI
     const swaggerDocument = yaml.load("./openapi.yaml");
-    app.use("/", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+    app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+
+    // Serve Static Files
+    app.use(express.static("public"));
+    app.get("*", (req, res) => {
+        res.sendFile("index.html", { root: "public" });
+    });
 
     return app;
 };

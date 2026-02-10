@@ -2,7 +2,7 @@ import express, { Request } from "express";
 import { PagingQueryParams } from "../routes/common";
 import { TodoList } from "../models/todoList";
 import { TodoListRepository } from "../models/todoListRepository";
-import { TodoItemRepository } from "../models/todoItemRepository";
+import { ProductRepository } from "../models/todoItemRepository";
 
 const router = express.Router();
 
@@ -17,12 +17,12 @@ router.get("/", async (req: Request<unknown, unknown, unknown, PagingQueryParams
     try {
         const repository = new TodoListRepository();
         const lists = await repository.findAll();
-        
+
         // Apply pagination
         const skip = req.query.skip ? parseInt(req.query.skip) : 0;
         const top = req.query.top ? parseInt(req.query.top) : 20;
         const paginatedLists = lists.slice(skip, skip + top);
-        
+
         res.json(paginatedLists);
     } catch (err) {
         console.error("Error fetching lists:", err);
@@ -90,11 +90,11 @@ router.put("/:listId", async (req: Request<TodoListPathParams, unknown, TodoList
 router.delete("/:listId", async (req: Request<TodoListPathParams>, res) => {
     try {
         const listRepository = new TodoListRepository();
-        const itemRepository = new TodoItemRepository();
-        
+        const itemRepository = new ProductRepository();
+
         // First delete all items in the list
         await itemRepository.deleteByListId(req.params.listId);
-        
+
         // Then delete the list itself
         const deleted = await listRepository.delete(req.params.listId);
 
