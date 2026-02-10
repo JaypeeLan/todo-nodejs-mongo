@@ -1,14 +1,14 @@
+import { DarkTheme } from './ux/theme';
+import { AppContext, ApplicationState, getDefaultState } from './models/applicationState';
+import appReducer from './reducers';
+import { ProductContext } from './components/productContext';
+import { initializeIcons } from '@fluentui/react/lib/Icons';
+import { ThemeProvider } from '@fluentui/react';
+import Telemetry from './components/telemetry';
 import { useReducer, FC } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import Layout from './layout/layout';
 import './App.css';
-import { DarkTheme } from './ux/theme';
-import { AppContext, ApplicationState, getDefaultState } from './models/applicationState';
-import appReducer from './reducers';
-import { TodoContext } from './components/todoContext';
-import { initializeIcons } from '@fluentui/react/lib/Icons';
-import { ThemeProvider } from '@fluentui/react';
-import Telemetry from './components/telemetry';
 
 initializeIcons(undefined, { disableWarnings: true });
 
@@ -19,13 +19,13 @@ const App: FC = () => {
 
   return (
     <ThemeProvider applyTo="body" theme={DarkTheme}>
-      <TodoContext.Provider value={initialContext}>
+      <ProductContext.Provider value={initialContext}>
         <BrowserRouter>
           <Telemetry>
             <Layout />
           </Telemetry>
         </BrowserRouter>
-      </TodoContext.Provider>
+      </ProductContext.Provider>
     </ThemeProvider>
   );
 };

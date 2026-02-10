@@ -1,9 +1,9 @@
 import { useEffect, useContext, useMemo, useState, Fragment } from 'react';
 import { Stack, Text, Shimmer, ShimmerElementType } from '@fluentui/react';
-import ProductListPane from '../components/todoItemListPane';
+import ProductListPane from '../components/productListPane';
 import { Product } from '../models';
 import * as itemActions from '../actions/itemActions';
-import { TodoContext } from '../components/todoContext';
+import { ProductContext } from '../components/productContext';
 import { AppContext } from '../models/applicationState';
 import { ItemActions } from '../actions/itemActions';
 import { stackPadding, titleStackStyles } from '../ux/styles';
@@ -13,7 +13,7 @@ import WithApplicationInsights from '../components/telemetryWithAppInsights';
 
 const HomePage = () => {
     const navigate = useNavigate();
-    const appContext = useContext<AppContext>(TodoContext)
+    const appContext = useContext<AppContext>(ProductContext)
     const { productId } = useParams();
     const actions = useMemo(() => ({
         products: bindActionCreators(itemActions, appContext.dispatch) as unknown as ItemActions,
@@ -24,7 +24,7 @@ const HomePage = () => {
     // Load products on initial load
     useEffect(() => {
         const loadProducts = async () => {
-            await actions.products.list(); // pass empty string as we refactored listId out
+            await actions.products.list();
             setIsReady(true)
         }
         loadProducts();
@@ -65,8 +65,8 @@ const HomePage = () => {
                                 ]
                             } >
                             <Fragment>
-                                <Text block variant="xLarge">Product Catalog</Text>
-                                <Text variant="small">Manage your ecommerce inventory</Text>
+                                <Text block variant="xLarge">GMC Store Catalog</Text>
+                                <Text variant="small">Browse our latest Gadgets and Electronics</Text>
                             </Fragment>
                         </Shimmer>
                     </Stack.Item>
@@ -74,7 +74,7 @@ const HomePage = () => {
             </Stack.Item>
             <Stack.Item>
                 <ProductListPane
-                    items={appContext.state.selectedList?.items as Product[]} // In this refactor, items are stored in selectedList.items for now to minimize reducer changes
+                    items={appContext.state.products as Product[]}
                     selectedItem={appContext.state.selectedItem as Product}
                     disabled={!isReady}
                     onSelect={onProductSelected}
@@ -88,4 +88,3 @@ const HomePage = () => {
 const HomePageWithTelemetry = WithApplicationInsights(HomePage, 'HomePage');
 
 export default HomePageWithTelemetry;
-

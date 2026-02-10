@@ -27,9 +27,8 @@ This guide describes how to deploy the ecommerce application to Azure using the 
 
 1.  In your App Service, go to **Settings > Configuration**.
 2.  Add the following **Application settings**:
-    - `COSMOS_CONNECTION_STRING`: The connection string copied from Cosmos DB.
-    - `COSMOS_DATABASE_NAME`: `ecommerce` (or your preferred name).
-    - `COSMOS_CONTAINER_NAME`: `products`.
+    - `MONGODB_URI`: The connection string copied from MongoDB settings.
+    - `AZURE_COSMOS_DATABASE_NAME`: `Todo` (Default used in code).
     - `NODE_ENV`: `production`.
 
 ## Step 3: Set up GitHub Actions
