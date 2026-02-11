@@ -46,8 +46,8 @@ const Header: FC = (): ReactElement => {
             </Stack.Item>
             <Stack.Item>
                 <Stack horizontal styles={toolStackClass} grow={1}>
-                    <IconButton aria-label="Add" iconProps={{ iconName: "Settings", ...iconProps }} />
-                    <IconButton aria-label="Add" iconProps={{ iconName: "Help", ...iconProps }} />
+                    <IconButton aria-label="Settings" iconProps={{ iconName: "Settings", ...iconProps }} />
+                    <IconButton aria-label="Help" iconProps={{ iconName: "Help", ...iconProps }} />
                     <Persona size={PersonaSize.size24} text="Sample User" />
                     {/* <Toggle label="Dark Mode" inlineLabel styles={{ root: { marginBottom: 0 } }} onChange={changeTheme} /> */}
                 </Stack>

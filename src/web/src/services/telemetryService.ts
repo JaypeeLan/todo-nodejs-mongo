@@ -14,11 +14,16 @@ export const getApplicationInsights = (): ApplicationInsights => {
         return applicationInsights;
     }
 
+    if (!config.observability.connectionString) {
+        console.warn("ApplicationInsights connection string not found. Telemetry is disabled.");
+        return null as any;
+    }
+
     const ApplicationInsightsConfig: Snippet = {
         config: {
             connectionString: config.observability.connectionString,
             enableCorsCorrelation: true,
-            distributedTracingMode: DistributedTracingModes.W3C, 
+            distributedTracingMode: DistributedTracingModes.W3C,
             extensions: [plugin],
             extensionConfig: {
                 [plugin.identifier]: { history: browserHistory }
@@ -37,7 +42,7 @@ export const getApplicationInsights = (): ApplicationInsights => {
                 telemetry.tags['ai.cloud.role'] = "webui";
             }
         });
-    } catch(err) {
+    } catch (err) {
         // TODO - proper logging for web
         console.error("ApplicationInsights setup failed, ensure environment variable 'VITE_APPLICATIONINSIGHTS_CONNECTION_STRING' has been set.", err);
     }

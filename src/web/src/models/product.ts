@@ -1,7 +1,7 @@
 export enum ProductStatus {
-    Available = "available",
-    OutOfStock = "outofstock",
-    Discontinued = "discontinued"
+    Available = "Available",
+    OutOfStock = "OutOfStock",
+    Discontinued = "Discontinued"
 }
 
 export interface Product {

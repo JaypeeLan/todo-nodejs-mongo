@@ -3,11 +3,13 @@ import { ProductModel } from "./product";
 
 export class ProductRepository {
     public async findAll(): Promise<any[]> {
-        return await ProductModel.find().lean();
+        const products = await ProductModel.find();
+        return products.map(p => p.toJSON());
     }
 
     public async findById(id: string): Promise<any | undefined> {
-        return await ProductModel.findById(id).lean();
+        const product = await ProductModel.findById(id);
+        return product ? product.toJSON() : undefined;
     }
 
     public async create(item: any): Promise<any> {
@@ -17,7 +19,8 @@ export class ProductRepository {
     }
 
     public async update(id: string, item: any): Promise<any | undefined> {
-        return await ProductModel.findByIdAndUpdate(id, item, { new: true }).lean();
+        const product = await ProductModel.findByIdAndUpdate(id, item, { new: true });
+        return product ? product.toJSON() : undefined;
     }
 
     public async delete(id: string): Promise<ActionResponse> {
