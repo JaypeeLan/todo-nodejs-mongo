@@ -37,6 +37,7 @@ jobs:
           cp src/api/server.js deploy/
           cp -r src/api/config deploy/
           cp src/api/openapi.yaml deploy/
+          cp .deployment deploy/
           mkdir -p deploy/public
           cp -r src/web/dist/* deploy/public/
 
