@@ -41,6 +41,11 @@ jobs:
           mkdir -p deploy/public
           cp -r src/web/dist/* deploy/public/
 
+      - name: Remove Build Script from package.json
+        run: |
+          cd deploy
+          node -e "const pkg = require('./package.json'); delete pkg.scripts.build; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+
       - name: Install Production Dependencies
         run: |
           cd deploy
